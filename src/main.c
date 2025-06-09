@@ -143,8 +143,8 @@ Color calc_color(Vec3f v) {
 
 int main() {
     init_color();
-    int img_w = 1280;
-    int img_h = 720;
+    int img_w = 1280*2;
+    int img_h = 720*2;
     Picture pic = new_picture(img_w, img_h);
     for (int x = 0; x < img_w; x++) {
         for (int y = 0; y < img_h; y++) {
@@ -153,8 +153,10 @@ int main() {
             set_pixel(pic, screen_pos, calc_color(v));
         }
     }
-    writeBMP("test.bmp", pic);
+    Picture newpic = picture_downscale_2x(pic);
+    writeBMP("test.bmp", newpic);
     delete_picture(pic);
+    delete_picture(newpic);
     return 0;
 }
 

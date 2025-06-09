@@ -17,6 +17,7 @@ void delete_picture(Picture pic);
 
 void set_pixel(Picture pic, Vec2i pos, Color c);
 void normalize_picture(Picture pic);
+Picture picture_downscale_2x(Picture pic);
 
 bool writeBMP(const char* filename, Picture pic);
 

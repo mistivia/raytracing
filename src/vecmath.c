@@ -46,3 +46,13 @@ Color icolor(int32_t rgb) {
 void vec3f_show(const char *name, Vec3f v) {
     printf("%s(%f,%f,%f)\n", name, v.x, v.y, v.z);
 }
+
+Color pixel_avg4(Color pixels[4]) {
+    float r = 0,g = 0,b = 0;
+    for (int i = 0; i < 4; i++) {
+        r += pixels[i].r; 
+        g += pixels[i].g; 
+        b += pixels[i].b; 
+    }
+    return (Color) {r/4.0, g/4.0, b/4.0};
+}

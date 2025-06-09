@@ -1,2 +1,2 @@
 all:
-	gcc -g -fsanitize=address -lm src/*.c -o main 
+	gcc -O2 -flto -lm src/*.c -o main 

@@ -28,6 +28,8 @@ Vec3f vec3f_neg(Vec3f v);
 Vec3f vec3f_normalize(Vec3f vec);
 Vec3f vec3f_mul(float a, Vec3f v);
 void vec3f_show(const char *name, Vec3f v);
+
 Color icolor(int32_t rgb);
+Color pixel_avg4(Color pixels[4]);
 
 #endif
