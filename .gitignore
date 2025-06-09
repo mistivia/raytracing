@@ -1,2 +1,5 @@
 *.bmp
 a.out
+main
+.cache
+compile_commands.json
