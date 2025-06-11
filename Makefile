@@ -1,2 +1,2 @@
 all:
-	gcc -O2 -flto -lm src/*.c -o main 
+	gcc -Wall -O2 -flto -lm src/*.c -o main 

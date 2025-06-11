@@ -31,24 +31,29 @@ typedef struct {
     Vec3f center;
     float r;
     Color color;
+    float specular;
 } Ball;
 
 Ball balls[] = {
     {
         .center = {.x = 0, .y = -1, .z = 3},
         .r = 1,
+        .specular = 500,
     },
     {
         .center = {.x = 2, .y = 0, .z = 4},
         .r = 1,
+        .specular = 500,
     },
     {
         .center = {.x = -2, .y = 0, .z = 4},
         .r = 1,
+        .specular = 10,
     },
     {
         .center = {0, -5001, 0},
         .r = 5000,
+        .specular = 1000,
     },
 };
 
@@ -94,8 +99,16 @@ float ball_intersect(Vec3f start, Vec3f ray, Ball *ball) {
     return t1 < t2 ? t1 : t2;
 }
 
+float specular_coeff(Vec3f l, Vec3f n, Vec3f v, float s) {
+    Vec3f r = vec3f_sub(vec3f_mul(2 * vec3f_dot(n, l), n), l);
+    v = vec3f_normalize(v);
+    float prod = vec3f_dot(r, vec3f_neg(v));
+    if (prod < 0) return 0;
+    else return pow(vec3f_dot(r, vec3f_neg(v)), s);
+}
 
-Color ball_surface_color(Ball *ball, Vec3f point) {
+
+Color ball_surface_color(Ball *ball, Vec3f point, Vec3f view) {
     Vec3f norm = vec3f_normalize(vec3f_sub(point, ball->center));
     float amp = 0;
     for (int i = 0; i < sizeof(lights) / sizeof(Light); i++) {
@@ -105,10 +118,18 @@ Color ball_surface_color(Ball *ball, Vec3f point) {
             Vec3f l = vec3f_normalize(vec3f_sub(lights[i].vec, point));
             float prod = vec3f_dot(l, norm);
             if (prod > 0) amp += prod * lights[i].intensity;
+            if (ball->specular > 0) {
+                amp += specular_coeff(l, norm, view, ball->specular)
+                        * lights[i].intensity;
+            }
         } else if (lights[i].type == kDirectionalLight) {
             Vec3f l = vec3f_normalize(lights[i].vec);
             float prod = vec3f_dot(l, norm);
             if (prod > 0) amp += prod * lights[i].intensity;
+            if (ball->specular > 0) {
+                amp += specular_coeff(l, norm, view, ball->specular)
+                        * lights[i].intensity;
+            }
         }
     }
     return (Color){
@@ -134,7 +155,7 @@ Color calc_color(Vec3f v) {
     }
     if (nearest_idx >= 0) {
         Vec3f intersection = vec3f_add(start, vec3f_mul(t_nearest, v));
-        return ball_surface_color(&balls[nearest_idx], intersection);
+        return ball_surface_color(&balls[nearest_idx], intersection, v);
     } else {
         return gBackgroupColor;
     }
