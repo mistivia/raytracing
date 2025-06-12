@@ -6,6 +6,8 @@
 #include "vecmath.h"
 #include "picture.h"
 
+#define EPSILON 0.001
+
 typedef enum {
     kAmbientLight,
     kPointLight,
@@ -99,6 +101,29 @@ float ball_intersect(Vec3f start, Vec3f ray, Ball *ball) {
     return t1 < t2 ? t1 : t2;
 }
 
+bool is_in_shadow(Vec3f pos, Light light) {
+    Vec3f ray;
+    if (light.type == kPointLight) {
+        ray = vec3f_sub(light.vec, pos);
+    } else if (light.type == kDirectionalLight) {
+        ray = light.vec;
+    } else {
+        return false;
+    }
+    float tmin = FLT_MAX;
+    for (int i = 0; i < sizeof(balls) / sizeof(Ball); i++) {
+        float t = ball_intersect(pos, ray, &balls[i]);
+        if (t > EPSILON && t < tmin) tmin = t;
+    }
+    if (light.type == kPointLight) {
+        return tmin < 1;
+    }
+    if (light.type == kDirectionalLight) {
+        return tmin != FLT_MAX;
+    }
+    return false;
+}
+
 float specular_coeff(Vec3f l, Vec3f n, Vec3f v, float s) {
     Vec3f r = vec3f_sub(vec3f_mul(2 * vec3f_dot(n, l), n), l);
     v = vec3f_normalize(v);
@@ -115,6 +140,7 @@ Color ball_surface_color(Ball *ball, Vec3f point, Vec3f view) {
         if (lights[i].type == kAmbientLight) {
             amp += lights[i].intensity;
         } else if (lights[i].type == kPointLight) {
+            if (is_in_shadow(point, lights[i])) continue;
             Vec3f l = vec3f_normalize(vec3f_sub(lights[i].vec, point));
             float prod = vec3f_dot(l, norm);
             if (prod > 0) amp += prod * lights[i].intensity;
@@ -123,6 +149,7 @@ Color ball_surface_color(Ball *ball, Vec3f point, Vec3f view) {
                         * lights[i].intensity;
             }
         } else if (lights[i].type == kDirectionalLight) {
+            if (is_in_shadow(point, lights[i])) continue;
             Vec3f l = vec3f_normalize(lights[i].vec);
             float prod = vec3f_dot(l, norm);
             if (prod > 0) amp += prod * lights[i].intensity;
@@ -164,8 +191,8 @@ Color calc_color(Vec3f v) {
 
 int main() {
     init_color();
-    int img_w = 1280*2;
-    int img_h = 720*2;
+    int img_w = 800*2;
+    int img_h = 800*2;
     Picture pic = new_picture(img_w, img_h);
     for (int x = 0; x < img_w; x++) {
         for (int y = 0; y < img_h; y++) {
